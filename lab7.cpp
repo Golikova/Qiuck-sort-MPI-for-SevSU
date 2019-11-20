@@ -18,7 +18,7 @@ vector<int> generate(int n){
 	vector<int> v(n);
 
 	for (int i=0; i<n; i++)
-		v[i] = rand() % 10;
+		v[i] = rand() % 100;
 
 	return v;
 }
@@ -27,7 +27,7 @@ int partition(vector<int> &v, int left, int right){
 	int pivot = v[right];
 	int i = left;
 
-	for (int j=left; j<right; j++)
+	for (int j=left; j<right; j++) {
 		if (v[j] <= pivot){
 			if (i != j){
 				int aux = v[i];
@@ -36,6 +36,7 @@ int partition(vector<int> &v, int left, int right){
 			}
 			i++;
 		}
+	}
 
 	if (v[right] < v[i]){
 		v[right] = v[i];
@@ -50,6 +51,8 @@ void quick_sort(vector<int> &v, int left, int right, int procsLeft){
 		return;
 
 	int piv = partition(v, left, right);
+		cout << "Процесс " << rankNum << " отсортировал (парсер = " << v[piv] << "): ";
+		printVector(v);
 
 	if (piv == left){
 		quick_sort(v, left + 1, right, procsLeft);
@@ -72,6 +75,7 @@ void quick_sort(vector<int> &v, int left, int right, int procsLeft){
 
 		// cout << rankNum << " waiting for data...\n";
 		MPI_Recv(v.data() + piv + 1, size, MPI_INT, child, 3, MPI_COMM_WORLD, &status);
+
 		// cout << rankNum << " received data...\n";
 	} else {
 		quick_sort(v, left, piv - 1, 1);
@@ -118,15 +122,17 @@ int main(int argc, char **argv){
 
 		int n = atoi(argv[1]);
 		vector<int> v = generate(n);
-		cout << "Создан массив "; printVector(v);
+		cout << "Создан "; printVector(v);
 
 		quick_sort(v, 0, v.size() - 1, size);
 		printVector(v);
+
+
 	} else {
 		quick_sort_worker();
 	}
 
-
 	MPI_Finalize();
+	
 	return 0;
 }
